@@ -1,11 +1,10 @@
 import React from 'react';
-import Login from './Login';
+import Auth from './Auth';
 
 function App() {
   return (
     <div>
-      <h1>Enigma Login</h1>
-      <Login />
+      <Auth />
     </div>
   );
 }
