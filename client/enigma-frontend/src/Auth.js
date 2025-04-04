@@ -1,162 +1,182 @@
 import React, { useState } from 'react';
 
-const Auth = () => {
-  // State to determine whether to show the login or registration form
+function Auth() {
+  // Toggle state: true = login, false = register.
   const [isLogin, setIsLogin] = useState(true);
-
-  // Common fields
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // Field specific to registration (and also used in login now) for username
-  const [username, setUsername] = useState('');
-
-  // States for messages and errors
   const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
 
-  // Toggle between login and registration forms
-  const handleToggle = () => {
+  const toggleForm = () => {
     setIsLogin(!isLogin);
     setMessage('');
-    setError('');
   };
 
-  // Handle form submission for login or registration
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
-    setError('');
 
-    // Determine the correct endpoint URL and payload based on form type
     const url = isLogin
       ? 'http://localhost:4000/user/login'
       : 'http://localhost:4000/user/register';
 
-    // For both login and registration, we're sending username, email, and password.
-    // (You may decide to only require username and password for login.)
+    // For login: { username, password }
+    // For register: { username, email, password }
     const payload = isLogin
-      ? { username, password }  // For login, we're using username for identification
+      ? { username, password }
       : { username, email, password };
 
     try {
-      // Send a POST request with the payload as JSON
-      const response = await fetch(url, {
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const data = await response.json();
+      const data = await res.json();
 
-      // Update the message or error state based on response
-      if (response.ok) {
+      if (res.ok) {
         setMessage(data.message);
-        // Optionally, store the token: localStorage.setItem('token', data.token);
       } else {
-        setError(data.error || 'Operation failed');
+        setMessage(data.error || 'Operation failed');
       }
-    } catch (err) {
-      setError('An error occurred: ' + err.message);
+    } catch (error) {
+      setMessage('Error: ' + error.message);
     }
   };
 
   return (
-    <div style={styles.container}>
-      <h1>{isLogin ? 'Login' : 'Register'}</h1>
-      {/* Toggle button */}
-      <button onClick={handleToggle} style={styles.toggleButton}>
-        {isLogin ? 'Switch to Registration' : 'Switch to Login'}
-      </button>
-      
-      {/* Display error or success messages */}
-      {error && <p style={styles.error}>{error}</p>}
-      {message && <p style={styles.success}>{message}</p>}
-      
-      <form onSubmit={handleSubmit} style={styles.form}>
-        {/* Always show username field */}
-        <div style={styles.formGroup}>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            style={styles.input}
-          />
-        </div>
-        
-        {/* Registration-only field: email */}
-        {!isLogin && (
+    <div style={styles.background}>
+      <div style={styles.container}>
+        <h2 style={styles.heading}>Enigma<br />The trivia game</h2>
+        <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.formGroup}>
-            <label>Email:</label>
+            <label style={styles.label}>
+              {isLogin ? 'Username' : 'Username'}
+            </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
               style={styles.input}
             />
           </div>
-        )}
-        
-        {/* Common field: password */}
-        <div style={styles.formGroup}>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={styles.input}
-          />
-        </div>
-        
-        <button type="submit" style={styles.submitButton}>
-          {isLogin ? 'Login' : 'Register'}
-        </button>
-      </form>
+          {/* Only show email field if registering */}
+          {!isLogin && (
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={styles.input}
+              />
+            </div>
+          )}
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={styles.input}
+            />
+          </div>
+          <button type="submit" style={styles.submitButton}>
+            {isLogin ? 'Login' : 'Register'}
+          </button>
+        </form>
+        <p style={styles.toggleText}>
+          {isLogin ? "Don't have an account?" : 'Already have an account?'}
+          <button onClick={toggleForm} style={styles.toggleButton}>
+            {isLogin ? 'Register' : 'Login'}
+          </button>
+        </p>
+        {message && <p style={styles.message}>{message}</p>}
+      </div>
+      {/* You can place an image or additional content on the right if desired */}
     </div>
   );
-};
+}
 
 const styles = {
-  container: {
-    maxWidth: '400px',
-    margin: '2rem auto',
-    padding: '1rem',
-    textAlign: 'center',
-    fontFamily: 'Arial, sans-serif',
-    border: '1px solid #ccc',
-    borderRadius: '8px',
+  background: {
+    backgroundImage: "url('/background.png')", // Put your image in public folder as background.jpg
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    // Justify content left so the container is on the left
+    // If you want it strictly pinned to left, set `justifyContent: 'flex-start'`
+    justifyContent: 'flex-start',
   },
-  toggleButton: {
+  container: {
+    // Purple with some translucency
+    backgroundColor: 'rgba(79, 34, 98, 0.8)', // #4f2262 at 80% opacity
+    padding: '2rem',
+    borderRadius: '8px',
+    width: '300px',
+    marginLeft: '3rem',
+    color: '#fff', // White text for contrast
+    // Optional: box shadow or border for styling
+    boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',
+  },
+  heading: {
+    margin: 0,
     marginBottom: '1rem',
-    padding: '0.5rem 1rem',
-    cursor: 'pointer',
+    fontSize: '1.5rem',
+    textAlign: 'center',
+    lineHeight: '1.2',
   },
   form: {
-    textAlign: 'left',
+    display: 'flex',
+    flexDirection: 'column',
   },
   formGroup: {
     marginBottom: '1rem',
   },
+  label: {
+    display: 'block',
+    marginBottom: '0.25rem',
+  },
   input: {
     width: '100%',
     padding: '0.5rem',
-    fontSize: '16px',
+    fontSize: '1rem',
+    border: 'none',
+    borderRadius: '4px',
     boxSizing: 'border-box',
   },
   submitButton: {
-    padding: '0.5rem 1rem',
-    width: '100%',
-    fontSize: '16px',
+    padding: '0.75rem',
+    fontSize: '1rem',
+    backgroundColor: '#fff',
+    color: '#4f2262',
+    border: 'none',
+    borderRadius: '4px',
     cursor: 'pointer',
   },
-  error: {
-    color: 'red',
+  toggleText: {
+    marginTop: '1rem',
+    textAlign: 'center',
   },
-  success: {
-    color: 'green',
+  toggleButton: {
+    marginLeft: '0.5rem',
+    padding: '0.25rem 0.5rem',
+    backgroundColor: 'transparent',
+    border: '1px solid #fff',
+    borderRadius: '4px',
+    color: '#fff',
+    cursor: 'pointer',
+  },
+  message: {
+    marginTop: '1rem',
+    textAlign: 'center',
+    fontSize: '0.9rem',
   },
 };
 
