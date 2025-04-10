@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function Auth() {
   // Toggle state: true = login, false = register.
@@ -8,6 +9,8 @@ function Auth() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
+  const navigate = useNavigate();
+
   const toggleForm = () => {
     setIsLogin(!isLogin);
     setMessage('');
@@ -16,27 +19,40 @@ function Auth() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
-
+  
     const url = isLogin
       ? 'http://localhost:4000/user/login'
       : 'http://localhost:4000/user/register';
-
-    // For login: { username, password }
-    // For register: { username, email, password }
+  
     const payload = isLogin
       ? { username, password }
       : { username, email, password };
-
+  
     try {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+  
       const data = await res.json();
-
+  
       if (res.ok) {
         setMessage(data.message);
+  
+        if (!isLogin) {
+          // If registering, switch to login view and clear all inputs
+          setIsLogin(true);
+          setUsername('');
+          setEmail('');
+          setPassword('');
+        }
+
+        if (isLogin) {
+          // Redirect to dashboard after login
+          navigate('/dashboard');
+        }
+  
       } else {
         setMessage(data.error || 'Operation failed');
       }
@@ -44,6 +60,7 @@ function Auth() {
       setMessage('Error: ' + error.message);
     }
   };
+  
 
   return (
     <div style={styles.background}>
@@ -116,11 +133,11 @@ const styles = {
   },
   container: {
     // Purple with some translucency
-    backgroundColor: 'rgba(79, 34, 98, 0.8)', // #4f2262 at 80% opacity
-    padding: '2rem',
+    backgroundColor: 'rgba(137, 98, 184, 0.8)', // #4f2262 at 80% opacity
+    padding: '5rem 2rem',
     borderRadius: '8px',
     width: '300px',
-    marginLeft: '3rem',
+    marginLeft: '10rem',
     color: '#fff', // White text for contrast
     // Optional: box shadow or border for styling
     boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',
